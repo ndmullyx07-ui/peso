@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToyWheels - Toko Kendaraan Mainan</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #facc15;
+      --secondary-dark: #eab308;
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --radius: 1rem;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    img { max-width: 100%; display: block; }
+    button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+    #loader { position: fixed; inset: 0; background: var(--white); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s, visibility 0.5s; }
+    #loader.hidden { opacity: 0; visibility: hidden; }
+    .spinner { width: 60px; height: 60px; border: 5px solid #e2e8f0; border-top-color: var(--primary); border-bottom-color: var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    nav { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.3s; }
+    nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+    .logo i { color: var(--secondary); font-size: 1.8rem; }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { font-weight: 700; color: var(--text); position: relative; transition: color 0.3s; font-size: 0.95rem; }
+    .nav-links a:hover, .nav-links a.active { color: var(--primary); }
+    .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 3px; background: var(--secondary); border-radius: 2px; transition: width 0.3s; }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+    .cart-badge { background: var(--secondary); color: var(--text); font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 50px; margin-left: 0.3rem; font-weight: 800; display: none; }
+    .hamburger { display: none; font-size: 1.5rem; color: var(--primary); background: none; }
+    @media (max-width: 768px) {
+      .hamburger { display: block; }
+      .nav-links { position: fixed; top: 70px; right: -100%; width: 70%; max-width: 300px; height: 100vh; background: var(--white); flex-direction: column; padding: 2rem; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: right 0.3s; align-items: flex-start; gap: 1.5rem; }
+      .nav-links.open { right: 0; }
+    }
+
+    .section { display: none; padding: 6rem 1.5rem 4rem; max-width: 1200px; margin: 0 auto; min-height: 80vh; animation: fadeIn 0.5s ease; }
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-title { text-align: center; font-size: 1.8rem; margin-bottom: 2.5rem; color: var(--text); font-weight: 800; }
+    .section-title span { color: var(--primary); }
+
+    .hero { background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); border-radius: 2rem; padding: 4rem 2rem; color: var(--white); text-align: center; position: relative; overflow: hidden; margin-bottom: 3rem; }
+    .hero::before { content: ''; position: absolute; top: -50%; right: -20%; width: 500px; height: 500px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    .hero::after { content: ''; position: absolute; bottom: -30%; left: -10%; width: 300px; height: 300px; background: rgba(250,204,21,0.2); border-radius: 50%; }
+    .hero-content { position: relative; z-index: 2; }
+    .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; font-weight: 800; line-height: 1.2; }
+    .hero p { font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.95; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--secondary); color: var(--text); padding: 0.9rem 2rem; border-radius: 50px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 15px rgba(250,204,21,0.4); transition: transform 0.3s, box-shadow 0.3s; border: none; }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(250,204,21,0.5); }
+    @media (max-width: 640px) { .hero h1 { font-size: 1.8rem; } .hero { padding: 3rem 1.5rem; } }
+
+    .categories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+    .category-card { background: var(--white); padding: 1.5rem 1rem; border-radius: var(--radius); text-align: center; box-shadow: var(--shadow); transition: all 0.3s; cursor: pointer; border: 2px solid transparent; }
+    .category-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--secondary); }
+    .category-card i { font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem; }
+    .category-card h3 { font-size: 1rem; font-weight: 700; }
+
+    .advantages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+    .advantage-card { background: var(--white); padding: 1.5rem; border-radius: var(--radius); text-align: center; box-shadow: var(--shadow); transition: transform 0.3s; }
+    .advantage-card:hover { transform: translateY(-5px); }
+    .advantage-icon { width: 60px; height: 60px; background: #eff6ff; color: var(--primary); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
+    .advantage-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .advantage-card p { font-size: 0.9rem; color: var(--text-light); }
+
+    .filter-container { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+    .filter-btn { padding: 0.5rem 1.2rem; border-radius: 50px; background: var(--white); border: 2px solid #e2e8f0; font-weight: 700; color: var(--text); transition: all 0.3s; cursor: pointer; font-family: inherit; }
+    .filter-btn:hover, .filter-btn.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
+    .search-box { max-width: 400px; margin: 0 auto 1.5rem; position: relative; }
+    .search-box input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 2px solid #e2e8f0; border-radius: 50px; font-family: inherit; font-size: 1rem; }
+    .search-box i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+    .product-card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: all 0.3s; display: flex; flex-direction: column; border: 1px solid #f1f5f9; }
+    .product-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); border-color: #e2e8f0; }
+    .product-image { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #e2e8f0; }
+    .product-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+    .product-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text); }
+    .product-stock { font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+    .product-desc { font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.75rem; line-height: 1.4; flex: 1; }
+    .product-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+    .product-price { font-size: 1.15rem; font-weight: 800; color: var(--primary); }
+    .btn-add-cart { width: 100%; margin-top: 0.75rem; background: var(--primary); color: var(--white); padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; font-size: 0.95rem; }
+    .btn-add-cart:hover { background: var(--primary-dark); }
+    .btn-add-cart:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .cart-wrapper { max-width: 800px; margin: 0 auto; }
+    .cart-container { background: var(--white); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); }
+    .cart-item { display: flex; gap: 1rem; padding: 1.25rem 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 0.5rem; background: #e2e8f0; flex-shrink: 0; }
+    .cart-item-info { flex: 1; min-width: 0; }
+    .cart-item-name { font-weight: 700; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cart-item-price { color: var(--primary); font-weight: 700; font-size: 0.9rem; }
+    .qty-control { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 50px; padding: 0.2rem; }
+    .qty-btn { width: 28px; height: 28px; border-radius: 50%; background: var(--bg); color: var(--text); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; border: none; font-size: 0.8rem; }
+    .qty-btn:hover { background: var(--secondary); }
+    .qty-number { font-weight: 800; min-width: 24px; text-align: center; font-size: 0.9rem; }
+    .btn-delete { color: #ef4444; font-size: 1.1rem; padding: 0.5rem; transition: transform 0.2s; background: none; width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+    .btn-delete:hover { transform: scale(1.1); background: #fef2f2; }
+    .cart-summary { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #e2e8f0; text-align: right; }
+    .cart-total { font-size: 1.3rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; }
+    .cart-total span { color: var(--primary); }
+    .btn-checkout { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--secondary); color: var(--text); padding: 0.9rem 2.5rem; border-radius: 50px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 15px rgba(250,204,21,0.4); transition: all 0.3s; border: none; }
+    .btn-checkout:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(250,204,21,0.5); }
+    .empty-cart { text-align: center; padding: 4rem 1rem; }
+    .empty-cart i { font-size: 4rem; color: #cbd5e1; margin-bottom: 1rem; }
+    .empty-cart h3 { margin-bottom: 0.5rem; color: var(--text); }
+    .empty-cart p { color: var(--text-light); margin-bottom: 1.5rem; }
+
+    .checkout-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; align-items: start; }
+    @media (max-width: 768px) { .checkout-grid { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); font-size: 0.95rem; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.75rem 1rem; border: 2px solid #e2e8f0; border-radius: 0.75rem; font-family: inherit; font-size: 1rem; transition: border-color 0.3s; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+    .expedition-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .expedition-card { border: 2px solid #e2e8f0; border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.3s; text-align: center; background: var(--white); }
+    .expedition-card:hover { border-color: var(--primary); }
+    .expedition-card.selected { border-color: var(--primary); background: #eff6ff; }
+    .expedition-card h4 { font-size: 0.95rem; margin-bottom: 0.25rem; font-weight: 800; }
+    .expedition-card p { font-size: 0.85rem; color: var(--text-light); font-weight: 700; }
+    .checkout-summary { background: var(--white); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); height: fit-content; position: sticky; top: 90px; }
+    .checkout-summary h3 { margin-bottom: 1rem; font-size: 1.2rem; font-weight: 800; }
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-light); }
+    .summary-row.total { font-size: 1.2rem; font-weight: 800; border-top: 2px solid #e2e8f0; padding-top: 0.75rem; color: var(--primary); margin-top: 0.5rem; }
+
+    .payment-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+    @media (max-width: 640px) { .payment-options { grid-template-columns: 1fr; } }
+    .payment-card { border: 2px solid #e2e8f0; border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.3s; text-align: center; background: var(--white); }
+    .payment-card:hover { border-color: var(--primary); }
+    .payment-card.selected { border-color: var(--primary); background: #eff6ff; }
+    .payment-card img { width: 50px; height: 50px; object-fit: contain; margin: 0 auto 0.5rem; border-radius: 0.5rem; }
+    .payment-card h4 { font-size: 0.95rem; font-weight: 800; }
+    .payment-card p { font-size: 0.8rem; color: var(--text-light); }
+
+    .payment-detail { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 0.75rem; padding: 1.25rem; text-align: center; margin-bottom: 1rem; display: none; }
+    .payment-detail.active { display: block; animation: fadeIn 0.3s ease; }
+    .payment-detail img { width: 180px; height: 180px; object-fit: contain; margin: 0.75rem auto; border-radius: 0.75rem; background: var(--white); padding: 0.5rem; box-shadow: var(--shadow); }
+    .payment-detail .rek-info { background: var(--white); padding: 0.75rem 1rem; border-radius: 0.5rem; margin-top: 0.75rem; font-weight: 700; font-size: 1rem; color: var(--text); border: 1px solid #e2e8f0; display: inline-block; }
+    .payment-detail .rek-info i { color: var(--primary); margin-right: 0.5rem; }
+    .payment-detail .copy-btn { background: var(--primary); color: var(--white); border: none; padding: 0.4rem 0.8rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 700; margin-left: 0.5rem; cursor: pointer; }
+
+    .upload-area { border: 2px dashed #cbd5e1; border-radius: 0.75rem; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #f8fafc; position: relative; }
+    .upload-area:hover { border-color: var(--primary); background: #eff6ff; }
+    .upload-area.has-file { border-color: #22c55e; background: #f0fdf4; }
+    .upload-area input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .upload-area i { font-size: 2rem; color: var(--text-light); margin-bottom: 0.5rem; }
+    .upload-area p { font-size: 0.9rem; color: var(--text-light); font-weight: 600; }
+    .upload-preview { max-width: 200px; max-height: 200px; border-radius: 0.5rem; margin: 0.75rem auto 0; display: none; box-shadow: var(--shadow); }
+    .upload-preview.active { display: block; }
+
+    .about-card { background: var(--white); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); line-height: 1.8; color: var(--text-light); }
+    .about-card h3 { color: var(--text); margin-bottom: 1rem; font-size: 1.3rem; }
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+    .contact-card { background: var(--white); padding: 2rem 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); text-align: center; transition: transform 0.3s; }
+    .contact-card:hover { transform: translateY(-5px); }
+    .contact-icon { width: 70px; height: 70px; background: #eff6ff; color: var(--primary); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 1rem; }
+    .contact-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .contact-card p { color: var(--text-light); font-size: 0.95rem; line-height: 1.6; }
+    .btn-wa { display: inline-flex; align-items: center; gap: 0.5rem; background: #25d366; color: var(--white); padding: 0.8rem 1.5rem; border-radius: 50px; font-weight: 700; margin-top: 1rem; transition: transform 0.3s; }
+    .btn-wa:hover { transform: translateY(-3px); }
+
+    footer { background: var(--text); color: var(--white); padding: 3rem 1.5rem 1.5rem; margin-top: 3rem; }
+    .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; }
+    .footer-col h3 { color: var(--secondary); margin-bottom: 1rem; font-size: 1.1rem; }
+    .footer-col p, .footer-col a { color: #cbd5e1; font-size: 0.95rem; line-height: 1.8; display: block; }
+    .footer-col a:hover { color: var(--secondary); }
+    .copyright { text-align: center; padding-top: 2rem; margin-top: 2rem; border-top: 1px solid #334155; color: #94a3b8; font-size: 0.9rem; }
+
+    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--white); padding: 0.85rem 1.75rem; border-radius: 50px; font-weight: 700; box-shadow: var(--shadow-lg); z-index: 200; opacity: 0; transition: all 0.4s; font-size: 0.95rem; white-space: nowrap; }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: var(--white); border-radius: 1.5rem; padding: 2rem; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: center; animation: modalPop 0.3s ease; }
+    @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-box i.success-icon { font-size: 4rem; color: #22c55e; margin-bottom: 1rem; }
+    .modal-box h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .modal-box p { color: var(--text-light); margin-bottom: 1.5rem; line-height: 1.6; }
+    .modal-box .proof-preview { max-width: 100%; max-height: 250px; border-radius: 0.75rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); border: 1px solid #e2e8f0; }
+    .modal-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .modal-actions button { padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 800; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-wa-modal { background: #25d366; color: var(--white); }
+    .btn-download { background: var(--primary); color: var(--white); }
+    .btn-close { background: #e2e8f0; color: var(--text); }
+  </style>
+<base target="_self">
+</head>
+<body>
+
+  <div id="loader"><div class="spinner"></div></div>
+
+  <nav id="navbar">
+    <div class="nav-container">
+      <a href="#home" class="logo" onclick="navigateTo('home')"><i class="fas fa-car-side"></i> ToyWheels</a>
+      <button class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#home" class="active" onclick="navigateTo('home')">Home</a></li>
+        <li><a href="#products" onclick="navigateTo('products')">Produk</a></li>
+        <li><a href="#cart" onclick="navigateTo('cart')">Keranjang <span class="cart-badge" id="cartBadge">0</span></a></li>
+        <li><a href="#about" onclick="navigateTo('about')">Tentang Kami</a></li>
+        <li><a href="#contact" onclick="navigateTo('contact')">Kontak</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <section id="home" class="section active">
+      <div class="hero">
+        <div class="hero-content">
+          <h1>Dunia Kendaraan Mainan Terbaik</h1>
+          <p>Koleksi lengkap mobil, truk, dan kendaraan konstruksi berkualitas untuk si kecil. Harga terjangkau, stok melimpah!</p>
+          <button class="btn-primary" onclick="navigateTo('products')"><i class="fas fa-shopping-bag"></i> Belanja Sekarang</button>
+        </div>
+      </div>
+
+      <h2 class="section-title">Kategori <span>Kendaraan</span></h2>
+      <div class="categories-grid">
+        <div class="category-card" onclick="filterFromHome('Mobil')">
+          <i class="fas fa-car"></i>
+          <h3>Mobil</h3>
+        </div>
+        <div class="category-card" onclick="filterFromHome('Truk')">
+          <i class="fas fa-truck"></i>
+          <h3>Truk</h3>
+        </div>
+        <div class="category-card" onclick="filterFromHome('Konstruksi')">
+          <i class="fas fa-hard-hat"></i>
+          <h3>Konstruksi</h3>
+        </div>
+        <div class="category-card" onclick="filterFromHome('Lainnya')">
+          <i class="fas fa-plane"></i>
+          <h3>Lainnya</h3>
+        </div>
+      </div>
+
+      <h2 class="section-title">Produk <span>Terbaru</span></h2>
+      <div class="products-grid" id="latestProductsGrid"></div>
+      <div style="text-align:center; margin-top:2rem;">
+        <button class="btn-primary" onclick="navigateTo('products')">Lihat Semua Produk <i class="fas fa-arrow-right"></i></button>
+      </div>
+
+      <h2 class="section-title">Mengapa Belanja di <span>ToyWheels?</span></h2>
+      <div class="advantages-grid">
+        <div class="advantage-card">
+          <div class="advantage-icon"><i class="fas fa-truck-fast"></i></div>
+          <h3>Pengiriman Cepat</h3>
+          <p>Pesanan dikirim di hari yang sama untuk wilayah Jakarta.</p>
+        </div>
+        <div class="advantage-card">
+          <div class="advantage-icon"><i class="fas fa-shield-halved"></i></div>
+          <h3>Kualitas Terjamin</h3>
+          <p>Mainan dari bahan plastik ABS aman dan tahan banting.</p>
+        </div>
+        <div class="advantage-card">
+          <div class="advantage-icon"><i class="fas fa-tags"></i></div>
+          <h3>Harga Terjangkau</h3>
+          <p>Harga bersaing tanpa mengorbankan kualitas produk.</p>
+        </div>
+        <div class="advantage-card">
+          <div class="advantage-icon"><i class="fas fa-headset"></i></div>
+          <h3>Layanan Ramah</h3>
+          <p>Tim kami siap membantu via WhatsApp setiap hari.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="products" class="section">
+      <h2 class="section-title">Semua <span>Produk</span></h2>
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Cari mainan..." oninput="handleSearch(this.value)">
+      </div>
+      <div class="filter-container">
+        <button class="filter-btn active" onclick="setFilter('all', this)">Semua</button>
+        <button class="filter-btn" onclick="setFilter('Mobil', this)">Mobil</button>
+        <button class="filter-btn" onclick="setFilter('Truk', this)">Truk</button>
+        <button class="filter-btn" onclick="setFilter('Konstruksi', this)">Konstruksi</button>
+        <button class="filter-btn" onclick="setFilter('Lainnya', this)">Lainnya</button>
+      </div>
+      <div class="products-grid" id="productsGrid"></div>
+    </section>
+
+    <section id="cart" class="section">
+      <h2 class="section-title">Keranjang <span>Belanja</span></h2>
+      <div class="cart-wrapper">
+        <div class="cart-container" id="cartContainer"></div>
+        <div class="cart-summary" id="cartSummary" style="display:none;">
+          <div class="cart-total" id="cartTotal">Total Pembayaran: <span>Rp 0</span></div>
+          <button class="btn-checkout" onclick="navigateTo('checkout')"><i class="fas fa-credit-card"></i> Checkout</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="checkout" class="section">
+      <h2 class="section-title">Checkout <span>Pesanan</span></h2>
+      <div class="checkout-grid">
+        <div>
+          <form id="checkoutForm" onsubmit="handleCheckout(event)">
+            <div class="form-group">
+              <label for="checkoutName">Nama Lengkap</label>
+              <input type="text" id="checkoutName" placeholder="Masukkan nama lengkap" required>
+            </div>
+            <div class="form-group">
+              <label for="checkoutWA">Nomor WhatsApp</label>
+              <input type="tel" id="checkoutWA" placeholder="Contoh: 08123456789" required>
+            </div>
+            <div class="form-group">
+              <label for="checkoutAddress">Alamat Lengkap</label>
+              <textarea id="checkoutAddress" rows="3" placeholder="Jl. Mawar No. 1, RT/RW, Kelurahan, Kecamatan, Kota" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Pilihan Ekspedisi</label>
+              <div class="expedition-options">
+                <div class="expedition-card" data-name="JNE" onclick="selectExpedition('JNE')">
+                  <h4>JNE</h4>
+                  <p>Rp 15.000</p>
+                </div>
+                <div class="expedition-card" data-name="J&T" onclick="selectExpedition('J&T')">
+                  <h4>J&T</h4>
+                  <p>Rp 12.000</p>
+                </div>
+                <div class="expedition-card" data-name="SiCepat" onclick="selectExpedition('SiCepat')">
+                  <h4>SiCepat</h4>
+                  <p>Rp 10.000</p>
+                </div>
+                <div class="expedition-card" data-name="Ambil di Toko" onclick="selectExpedition('Ambil di Toko')">
+                  <h4>Ambil di Toko</h4>
+                  <p>Rp 0</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div class="form-group">
+              <label>Metode Pembayaran</label>
+              <div class="payment-options">
+                <div class="payment-card" data-payment="QRIS" onclick="selectPayment('QRIS')">
+                  <img src="qris.png" alt="QRIS">
+                  <h4>QRIS</h4>
+                  <p>Scan QR</p>
+                </div>
+                <div class="payment-card" data-payment="BCA" onclick="selectPayment('BCA')">
+                  <img src="bca.png" alt="BCA">
+                  <h4>Transfer BCA</h4>
+                  <p>Bank Transfer</p>
+                </div>
+                <div class="payment-card" data-payment="GoPay" onclick="selectPayment('GoPay')">
+                  <img src="gopay.png" alt="GoPay">
+                  <h4>GoPay</h4>
+                  <p>E-Wallet</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detail Pembayaran -->
+            <div class="payment-detail" id="paymentDetailQRIS">
+              <p style="font-weight:700; color:var(--text); margin-bottom:0.5rem;">Scan QRIS di bawah ini untuk pembayaran:</p>
+              <img src="qris.png" alt="QRIS Code">
+              <p style="font-size:0.85rem; color:var(--text-light); margin-top:0.5rem;">Atas Nama: <strong>PT ToyWheels Indonesia</strong></p>
+            </div>
+            <div class="payment-detail" id="paymentDetailBCA">
+              <p style="font-weight:700; color:var(--text); margin-bottom:0.5rem;">Transfer ke rekening BCA berikut:</p>
+              <img src="bca.png" alt="BCA QR">
+              <div class="rek-info">
+                <i class="fas fa-building-columns"></i>
+                <span id="rekBCA">1234 5678 9012 3456</span>
+                <button type="button" class="copy-btn" onclick="copyRek('1234 5678 9012 3456')">Salin</button>
+              </div>
+              <p style="font-size:0.85rem; color:var(--text-light); margin-top:0.5rem;">Atas Nama: <strong>PT ToyWheels Indonesia</strong></p>
+            </div>
+            <div class="payment-detail" id="paymentDetailGoPay">
+              <p style="font-weight:700; color:var(--text); margin-bottom:0.5rem;">Transfer ke nomor GoPay berikut:</p>
+              <img src="gopay.png" alt="GoPay QR">
+              <div class="rek-info">
+                <i class="fab fa-google-wallet"></i>
+                <span id="rekGoPay">0812-6127-2147</span>
+                <button type="button" class="copy-btn" onclick="copyRek('081261272147')">Salin</button>
+              </div>
+              <p style="font-size:0.85rem; color:var(--text-light); margin-top:0.5rem;">Atas Nama: <strong>ToyWheels Shop</strong></p>
+            </div>
+
+            <!-- Upload Bukti -->
+            <div class="form-group">
+              <label>Upload Bukti Pembayaran <span style="color:#ef4444">*</span></label>
+              <div class="upload-area" id="uploadArea">
+                <input type="file" id="paymentProof" accept="image/*" onchange="handleFileUpload(this)">
+                <i class="fas fa-cloud-arrow-up" id="uploadIcon"></i>
+                <p id="uploadText">Klik atau tarik gambar bukti transfer ke sini</p>
+                <img class="upload-preview" id="uploadPreview" alt="Preview">
+              </div>
+              <p style="font-size:0.8rem; color:var(--text-light); margin-top:0.5rem;">Format: JPG, PNG. Maksimal 5MB.</p>
+            </div>
+
+            <button type="submit" class="btn-checkout" style="width:100%; justify-content:center; margin-top:0.5rem;">
+              <i class="fas fa-paper-plane"></i> Pesan Sekarang
+            </button>
+          </form>
+        </div>
+        <div class="checkout-summary">
+          <h3><i class="fas fa-receipt"></i> Ringkasan Pesanan</h3>
+          <div id="summaryItems"></div>
+          <div class="summary-row"><span>Subtotal</span><span id="summarySubtotal">Rp 0</span></div>
+          <div class="summary-row"><span>Ongkir</span><span id="summaryOngkir">Rp 0</span></div>
+          <div class="summary-row"><span>Metode Bayar</span><span id="summaryPayment">-</span></div>
+          <div class="summary-row total"><span>Total</span><span id="summaryTotal">Rp 0</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <h2 class="section-title">Tentang <span>Kami</span></h2>
+      <div class="about-card">
+        <h3>Cerita ToyWheels</h3>
+        <p>ToyWheels hadir sejak 2020 dengan misi menyediakan kendaraan mainan berkualitas untuk anak-anak Indonesia. Kami percaya bahwa bermain adalah cara terbaik untuk belajar. Setiap produk yang kami pilih telah melalui seleksi ketat soal keamanan material dan daya tahan.</p>
+        <br>
+        <p>Dari mobil polisi hingga excavator, kami ingin membantu orang tua menemukan hadiah terbaik untuk si kecil. Tanpa ribet, tanpa dashboard admin yang membingungkan — hanya toko mainan sederhana yang fokus pada kebahagiaan anak Anda.</p>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <h2 class="section-title">Hubungi <span>Kami</span></h2>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+          <h3>WhatsApp</h3>
+          <p>0812-6127-2147</p>
+          <a href="https://wa.me/6281261272147" target="_blank" class="btn-wa"><i class="fas fa-comment-dots"></i> Chat Sekarang</a>
+        </div>
+        <div class="contact-card">
+          <div class="contact-icon"><i class="fas fa-location-dot"></i></div>
+          <h3>Alamat Toko</h3>
+          <p>Jl. Sudirman No. 123<br>Kel. Karet, Kec. Setiabudi<br>Jakarta Selatan, DKI Jakarta</p>
+        </div>
+        <div class="contact-card">
+          <div class="contact-icon"><i class="fas fa-clock"></i></div>
+          <h3>Jam Operasional</h3>
+          <p>Senin - Jumat: 08.00 - 17.00<br>Sabtu: 09.00 - 15.00<br>Minggu: Tutup</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Sukses -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-box">
+      <i class="fas fa-circle-check success-icon"></i>
+      <h2>Pesanan Berhasil Dibuat!</h2>
+      <p>Nota telah dikirim ke WhatsApp penjual. Jangan lupa kirim bukti pembayaran juga ya!</p>
+      <img class="proof-preview" id="modalProofPreview" alt="Bukti Pembayaran">
+      <div class="modal-actions">
+        <button class="btn-wa-modal" onclick="openWhatsApp()"><i class="fab fa-whatsapp"></i> Buka WhatsApp</button>
+        <button class="btn-download" onclick="downloadProof()"><i class="fas fa-download"></i> Unduh Bukti</button>
+        <button class="btn-close" onclick="closeModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3><i class="fas fa-car-side"></i> ToyWheels</h3>
+        <p>Toko kendaraan mainan terpercaya dengan koleksi lengkap dan harga bersahabat untuk si kecil.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Menu</h3>
+        <a href="#home" onclick="navigateTo('home')">Home</a>
+        <a href="#products" onclick="navigateTo('products')">Produk</a>
+        <a href="#cart" onclick="navigateTo('cart')">Keranjang</a>
+        <a href="#about" onclick="navigateTo('about')">Tentang Kami</a>
+      </div>
+      <div class="footer-col">
+        <h3>Kontak</h3>
+        <p><i class="fab fa-whatsapp"></i> 0812-6127-2147</p>
+        <p><i class="fas fa-envelope"></i> halo@toywheels.id</p>
+      </div>
+      <div class="footer-col">
+        <h3>Jam Operasional</h3>
+        <p>Senin - Jumat: 08.00 - 17.00 WIB</p>
+        <p>Sabtu: 09.00 - 15.00 WIB</p>
+        <p>Minggu: Libur</p>
+      </div>
+    </div>
+    <div class="copyright">
+      © 2026 ToyWheels Shop. All rights reserved.
+    </div>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    const products = [
+      { id: 1, name: "Mobil Polisi", price: 85000, desc: "Mobil polisi dengan sirene dan pintu bisa dibuka. Cocok untuk bermain petualangan.", stock: 12, category: "Mobil", image: "https://cf.shopee.co.id/file/e4887a0afd671d7d7a60f57c6063e0f1" },
+
+      { id: 2, name: "Mobil Pemadam Kebakaran", price: 95000, desc: "Mobil pemadam dengan tangga dan selang air mainan. Seru untuk bermain menyelamatkan!", stock: 8, category: "Mobil", image: "https://down-id.img.susercontent.com/file/id-11134207-7rasd-m1jg1ma3qt7j52" },
+
+      { id: 3, name: "Ambulans Mainan", price: 88000, desc: "Ambulans lengkap dengan tandu dan peralatan dokter mainan. Ajari si kecil menolong orang.", stock: 15, category: "Mobil", image: "https://down-id.img.susercontent.com/file/id-11134207-7r98s-ln83hdiux2jrf1" },
+
+      { id: 4, name: "Truk Pasir", price: 78000, desc: "Truk pasir besar dengan bak yang bisa dimiringkan. Sempurna untuk bermain di taman.", stock: 10, category: "Truk", image: "https://down-id.img.susercontent.com/file/id-11134207-7rbk2-ma5cl53xt5vv28" },
+
+      { id: 5, name: "Truk Tangki", price: 92000, desc: "Truk tangki dengan detail mesin yang realistis. Kuat dan tahan banting.", stock: 7, category: "Truk", image: "https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full/100/MTA-28920843/brd-60517_truk-tangki-lampu-mainan-truk-tangki-bump-go-mainan-mobil-truck_full01.jpg" },
+
+      { id: 6, name: "Excavator", price: 110000, desc: "Excavator dengan lengan dan keruk yang bisa digerakkan. Ideal untuk bermain konstruksi.", stock: 9, category: "Konstruksi", image: "https://1.bp.blogspot.com/-AUof8eipyjc/WehQOKpuiAI/AAAAAAAAAJo/MuUe-2DQKkQAkDpibtmHlQa1_U6cRbiAACPcBGAYYCw/s1600/Olday_olday-rc-heavy-machine-truck-excavator-rechargeable-hax-6811-mainan-anak_full01.jpg" },
+
+      { id: 7, name: "Bulldozer", price: 105000, desc: "Bulldozer tangguh dengan bilah logam mainan. Dorong apa saja yang menghalangi!", stock: 11, category: "Konstruksi", image: "https://down-id.img.susercontent.com/file/sg-11134201-22120-b5fk1uwvlokv4b" },
+
+      { id: 8, name: "Forklift Mainan", price: 98000, desc: "Forklift dengan garpu yang bisa naik turun. Angkut barang-barang mainan dengan mudah.", stock: 6, category: "Konstruksi", image: "https://down-id.img.susercontent.com/file/cadfac469ec89e5241ebdfb0634dfbcd" },
+
+      { id: 9, name: "Crane Truck", price: 115000, desc: "Truk crane dengan kabel dan pengait. Angkat balok-balok mainan ke tempat tinggi.", stock: 5, category: "Konstruksi", image: "https://down-id.img.susercontent.com/file/f4bfaf9b724290f5a0b0c3af268d7c79" },
+
+      { id: 10, name: "Mobil Balap", price: 75000, desc: "Mobil balap sport dengan desain aerodinamis. Siap memenangkan perlombaan!", stock: 20, category: "Mobil", image: "https://down-id.img.susercontent.com/file/5783550122306c2d2433a45393ef04cf" },
+
+      { id: 11, name: "Monster Truck", price: 99000, desc: "Monster truck dengan ban besar dan suspensi tinggi. Lewati rintangan dengan gaya!", stock: 14, category: "Mobil", image: "https://cf.shopee.com.my/file/sg-11134201-22100-ihq38rkwt5ivfe" },
+
+      { id: 12, name: "Bus Pariwisata", price: 120000, desc: "Bus pariwisata panjang dengan detail kursi dan jendela. Ajak teman-teman berkeliling!", stock: 8, category: "Mobil", image: "https://down-id.img.susercontent.com/file/id-11134207-7rase-m0lr9dvyqa2m60" },
+
+      { id: 13, name: "Traktor", price: 102000, desc: "Traktor pertanian dengan roda besar dan mesin yang kuat. Bantu petani di sawah!", stock: 10, category: "Konstruksi", image: "https://down-id.img.susercontent.com/file/2a0c1c2f55004e1a646b8a1fd9ef6ab4" },
+
+      { id: 14, name: "Helikopter Mainan", price: 89000, desc: "Helikopter dengan baling-baling yang berputar. Terbang tinggi menjelajahi langit!", stock: 13, category: "Lainnya", image: "https://down-id.img.susercontent.com/file/65d78951a39e0e32f1bfb7c977a4e95c" },
+
+      { id: 15, name: "Motor Sport Mainan", price: 72000, desc: "Motor sport keren dengan detail knalpot dan fairing. Balap di sirkuit mainan!", stock: 18, category: "Lainnya", image: "https://down-id.img.susercontent.com/file/id-11134207-7r98s-lxwbo50i8ya5ed" }
+    ];
+
+    const CART_KEY = 'toyWheelsCart';
+    let currentFilter = 'all';
+    let selectedExpedition = '';
+    let selectedPayment = '';
+    let proofImageBase64 = '';
+    let lastReceiptText = '';
+
+    function formatNumber(num) {
+      return num.toLocaleString('id-ID');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function getCart() {
+      return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+    }
+
+    function saveCart(cart) {
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    }
+
+    function addToCart(productId) {
+      const product = products.find(p => p.id === productId);
+      if (!product || product.stock <= 0) return;
+      let cart = getCart();
+      const existing = cart.find(item => item.id === productId);
+      if (existing) {
+        if (existing.qty < product.stock) {
+          existing.qty++;
+        } else {
+          showToast('Stok tidak mencukupi!');
+          return;
+        }
+      } else {
+        cart.push({ id: productId, qty: 1 });
+      }
+      saveCart(cart);
+      updateCartBadge();
+      showToast('Berhasil ditambahkan ke keranjang!');
+      if (document.getElementById('products').classList.contains('active')) renderProducts(currentFilter, document.getElementById('searchInput').value);
+    }
+
+    function removeFromCart(productId) {
+      let cart = getCart().filter(item => item.id !== productId);
+      saveCart(cart);
+      renderCart();
+      updateCartBadge();
+    }
+
+    function updateQty(productId, change) {
+      let cart = getCart();
+      const item = cart.find(i => i.id === productId);
+      const product = products.find(p => p.id === productId);
+      if (!item || !product) return;
+      const newQty = item.qty + change;
+      if (newQty < 1) {
+        removeFromCart(productId);
+        return;
+      }
+      if (newQty > product.stock) {
+        showToast('Maksimal stok tersedia: ' + product.stock);
+        return;
+      }
+      item.qty = newQty;
+      saveCart(cart);
+      renderCart();
+    }
+
+    function updateCartBadge() {
+      const cart = getCart();
+      const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+      const badge = document.getElementById('cartBadge');
+      badge.textContent = totalQty;
+      badge.style.display = totalQty > 0 ? 'inline-block' : 'none';
+    }
+
+    function renderLatestProducts() {
+      const grid = document.getElementById('latestProductsGrid');
+      const latest = products.slice(0, 6);
+      grid.innerHTML = latest.map(p => createProductCard(p)).join('');
+    }
+
+    function createProductCard(p) {
+      const inCart = getCart().find(i => i.id === p.id);
+      const cartQty = inCart ? inCart.qty : 0;
+      const isMaxed = cartQty >= p.stock;
+      const isOut = p.stock === 0;
+      return `
+        <div class="product-card">
+          <img src="${p.image}" alt="${p.name}" class="product-image" loading="lazy">
+          <div class="product-body">
+            <h3 class="product-name">${p.name}</h3>
+            <span class="product-stock"><i class="fas fa-box"></i> Stok: ${p.stock}</span>
+            <p class="product-desc">${p.desc}</p>
+            <div class="product-footer">
+              <span class="product-price">Rp ${formatNumber(p.price)}</span>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(${p.id})" ${isOut || isMaxed ? 'disabled' : ''}>
+              <i class="fas fa-cart-plus"></i> ${isOut ? 'Stok Habis' : isMaxed ? 'Stok Maksimal' : 'Tambah ke Keranjang'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProducts(filter = 'all', search = '') {
+      const grid = document.getElementById('productsGrid');
+      let filtered = products;
+      if (filter !== 'all') filtered = filtered.filter(p => p.category === filter);
+      if (search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+      grid.innerHTML = filtered.map(p => createProductCard(p)).join('');
+    }
+
+    function renderCart() {
+      const cart = getCart();
+      const container = document.getElementById('cartContainer');
+      const summary = document.getElementById('cartSummary');
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="empty-cart">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>Keranjang Kosong</h3>
+            <p>Yuk, tambahkan mainan favorit si kecil!</p>
+            <button class="btn-primary" onclick="navigateTo('products')">Belanja Sekarang</button>
+          </div>
+        `;
+        summary.style.display = 'none';
+        return;
+      }
+
+      summary.style.display = 'block';
+      let total = 0;
+
+      container.innerHTML = cart.map(item => {
+        const p = products.find(prod => prod.id === item.id);
+        const subtotal = p.price * item.qty;
+        total += subtotal;
+        return `
+          <div class="cart-item">
+            <img src="${p.image}" alt="${p.name}">
+            <div class="cart-item-info">
+              <div class="cart-item-name">${p.name}</div>
+              <div class="cart-item-price">Rp ${formatNumber(p.price)}</div>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="updateQty(${p.id}, -1)"><i class="fas fa-minus"></i></button>
+                <span class="qty-number">${item.qty}</span>
+                <button class="qty-btn" onclick="updateQty(${p.id}, 1)"><i class="fas fa-plus"></i></button>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:800;color:var(--primary);margin-bottom:0.5rem;">Rp ${formatNumber(subtotal)}</div>
+              <button class="btn-delete" onclick="removeFromCart(${p.id})"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('cartTotal').innerHTML = `Total Pembayaran: <span>Rp ${formatNumber(total)}</span>`;
+    }
+
+    function renderCheckoutSummary() {
+      const cart = getCart();
+      const summaryItems = document.getElementById('summaryItems');
+      const subtotalEl = document.getElementById('summarySubtotal');
+      const ongkirEl = document.getElementById('summaryOngkir');
+      const totalEl = document.getElementById('summaryTotal');
+      const paymentEl = document.getElementById('summaryPayment');
+
+      let subtotal = 0;
+      summaryItems.innerHTML = cart.map(item => {
+        const p = products.find(prod => prod.id === item.id);
+        const itemTotal = p.price * item.qty;
+        subtotal += itemTotal;
+        return `<div class="summary-row"><span>${p.name} x${item.qty}</span><span>Rp ${formatNumber(itemTotal)}</span></div>`;
+      }).join('');
+
+      const ongkir = selectedExpedition ? (selectedExpedition === 'JNE' ? 15000 : selectedExpedition === 'J&T' ? 12000 : selectedExpedition === 'SiCepat' ? 10000 : 0) : 0;
+      const total = subtotal + ongkir;
+
+      subtotalEl.textContent = `Rp ${formatNumber(subtotal)}`;
+      ongkirEl.textContent = `Rp ${formatNumber(ongkir)}`;
+      totalEl.textContent = `Rp ${formatNumber(total)}`;
+      paymentEl.textContent = selectedPayment || '-';
+    }
+
+    function setFilter(category, btn) {
+      currentFilter = category;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderProducts(category, document.getElementById('searchInput').value);
+    }
+
+    function handleSearch(val) {
+      renderProducts(currentFilter, val);
+    }
+
+    function filterFromHome(category) {
+      currentFilter = category;
+      navigateTo('products');
+      setTimeout(() => {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.toggle('active', b.textContent === category);
+        });
+        renderProducts(category, '');
+      }, 50);
+    }
+
+    function selectExpedition(name) {
+      selectedExpedition = name;
+      document.querySelectorAll('.expedition-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.name === name);
+      });
+      renderCheckoutSummary();
+    }
+
+    function selectPayment(method) {
+      selectedPayment = method;
+      document.querySelectorAll('.payment-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.payment === method);
+      });
+      document.querySelectorAll('.payment-detail').forEach(d => d.classList.remove('active'));
+      const detail = document.getElementById('paymentDetail' + method);
+      if (detail) detail.classList.add('active');
+      renderCheckoutSummary();
+    }
+
+    function copyRek(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('Nomor berhasil disalin!'));
+    }
+
+    function handleFileUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Ukuran file maksimal 5MB');
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        proofImageBase64 = e.target.result;
+        const preview = document.getElementById('uploadPreview');
+        const area = document.getElementById('uploadArea');
+        preview.src = proofImageBase64;
+        preview.classList.add('active');
+        area.classList.add('has-file');
+        document.getElementById('uploadIcon').className = 'fas fa-check-circle';
+        document.getElementById('uploadIcon').style.color = '#22c55e';
+        document.getElementById('uploadText').textContent = file.name;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleCheckout(e) {
+      e.preventDefault();
+      const cart = getCart();
+      if (cart.length === 0) {
+        showToast('Keranjang masih kosong!');
+        return;
+      }
+
+      const name = document.getElementById('checkoutName').value.trim();
+      const wa = document.getElementById('checkoutWA').value.trim();
+      const address = document.getElementById('checkoutAddress').value.trim();
+
+      if (!name || !wa || !address || !selectedExpedition) {
+        showToast('Harap lengkapi semua data dan pilih ekspedisi!');
+        return;
+      }
+      if (!selectedPayment) {
+        showToast('Harap pilih metode pembayaran!');
+        return;
+      }
+      if (!proofImageBase64) {
+        showToast('Harap upload bukti pembayaran terlebih dahulu!');
+        return;
+      }
+
+      const ongkir = selectedExpedition === 'JNE' ? 15000 : selectedExpedition === 'J&T' ? 12000 : selectedExpedition === 'SiCepat' ? 10000 : 0;
+      let subtotal = 0;
+      cart.forEach(item => {
+        const p = products.find(prod => prod.id === item.id);
+        subtotal += p.price * item.qty;
+      });
+      const total = subtotal + ongkir;
+
+      const date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+      const itemsText = cart.map(item => {
+        const p = products.find(prod => prod.id === item.id);
+        return `• ${p.name} x ${item.qty}`;
+      }).join('\n');
+
+      const paymentInfo = selectedPayment === 'BCA' ? 'Transfer BCA ke 1234 5678 9012 3456 (PT ToyWheels Indonesia)' :
+                          selectedPayment === 'GoPay' ? 'GoPay ke 0812-6127-2147 (ToyWheels Shop)' :
+                          'QRIS (PT ToyWheels Indonesia)';
+
+      const receipt = `🧾 PESANAN BARU\n\nNama: ${name}\nNomor WA: ${wa}\nAlamat: ${address}\n\n====================\n\nDaftar Produk:\n\n${itemsText}\n\n====================\n\nSubtotal: Rp ${formatNumber(subtotal)}\nOngkir: Rp ${formatNumber(ongkir)}\nTotal: Rp ${formatNumber(total)}\n\nMetode Pembayaran: ${selectedPayment}\n${paymentInfo}\n\nEkspedisi: ${selectedExpedition}\n\nTanggal: ${date}\nJam: ${time}\n\n✅ Bukti pembayaran sudah diupload. Silakan cek lampiran.`;
+
+      lastReceiptText = receipt;
+
+      // Clear cart
+      localStorage.removeItem(CART_KEY);
+      updateCartBadge();
+      renderCart();
+
+      // Reset form
+      document.getElementById('checkoutForm').reset();
+      selectedExpedition = '';
+      selectedPayment = '';
+      document.querySelectorAll('.expedition-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.payment-detail').forEach(d => d.classList.remove('active'));
+      document.getElementById('uploadPreview').classList.remove('active');
+      document.getElementById('uploadArea').classList.remove('has-file');
+      document.getElementById('uploadIcon').className = 'fas fa-cloud-arrow-up';
+      document.getElementById('uploadIcon').style.color = '';
+      document.getElementById('uploadText').textContent = 'Klik atau tarik gambar bukti transfer ke sini';
+      proofImageBase64 = '';
+      renderCheckoutSummary();
+
+      // Show modal with proof
+      document.getElementById('modalProofPreview').src = proofImageBase64;
+      document.getElementById('successModal').classList.add('active');
+    }
+
+    function openWhatsApp() {
+      if (!lastReceiptText) return;
+      const encoded = encodeURIComponent(lastReceiptText);
+      const url = `https://wa.me/6281261272147?text=${encoded}`;
+      window.open(url, '_blank');
+    }
+
+    function downloadProof() {
+      const preview = document.getElementById('modalProofPreview');
+      if (!preview.src) return;
+      const a = document.createElement('a');
+      a.href = preview.src;
+      a.download = 'bukti-pembayaran-toywheels.png';
+      a.click();
+    }
+
+    function closeModal() {
+      document.getElementById('successModal').classList.remove('active');
+      lastReceiptText = '';
+      navigateTo('home');
+      showToast('Pesanan berhasil! Terima kasih.');
+    }
+
+    function navigateTo(pageId) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+
+      document.querySelectorAll('.nav-links a').forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + pageId);
+      });
+
+      document.getElementById('navLinks').classList.remove('open');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (pageId === 'products') renderProducts(currentFilter, document.getElementById('searchInput').value);
+      if (pageId === 'cart') renderCart();
+      if (pageId === 'checkout') renderCheckoutSummary();
+    }
+
+    function toggleMenu() {
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.replace('#', '') || 'home';
+      navigateTo(hash);
+    });
+
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => document.getElementById('loader').classList.add('hidden'), 800);
+      updateCartBadge();
+      renderLatestProducts();
+      const hash = window.location.hash.replace('#', '') || 'home';
+      navigateTo(hash);
+    });
+  </script>
+</body>
+</html>
